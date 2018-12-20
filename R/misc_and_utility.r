@@ -2975,20 +2975,17 @@ umx_time <- function(x = NA, formatStr = c("simple", "std", "custom %H %M %OS3")
 umx_print <- function (x, digits = getOption("digits"), quote = FALSE, na.print = "", zero.print = "0", justify = "none", file = c(NA, "tmp.html"), suppress = NULL, ...){
 	# depends on R2HTML::HTML and knitr::kable
 	file = umx_default_option(file, c(NA,"tmp.html"), check = FALSE)
-	if(class(x)=="character"){
+	if(inherits(x, "character")){
 		print(x)
-	}else if(class(x)!= "data.frame"){
-		if(class(x)=="matrix" |class(x)=="numeric"){
-			x = data.frame(x)
-		} else {
-			message("Sorry, umx_print currently only prints data.frames, matrices, and vectors.\n
-			File a request to print '", class(x), "' objects\n or perhaps you want umx_msg?")
-			return()
-		}
+	}else if(!inherits(x, "data.frame")){
+		x = tryCatch(as.data.frame(x), error = function(e) {
+			message("Sorry, umx_print currently only prints data.frames, matrices, vectors, or\nother objects coerceable to data.frames.\nFile a request to print '", paste(class(x), collapse=" "), "' objects\nor perhaps you want umx_msg?")
+			return(invisible(x))
+		} )
 	}
 
 	if(is.null(dim(x)[1]) || dim(x)[1] == 0){
-		return()
+		return(invisible(x))
 	} else {
 		if(!is.null(suppress)){
 			x[abs(x) < suppress] = 0
